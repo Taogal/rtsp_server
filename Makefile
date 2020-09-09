@@ -17,6 +17,7 @@ VPATH += flv/
 VPATH += sdk/
 VPATH += mov/
 VPATH += media/
+VPATH += mpeg/
 
 INCLUDE_PATH = include
 FFMPEG_DIR_LIB = ffmpeg/lib/linux
@@ -48,6 +49,7 @@ CFLAGS += -I$(INCLUDE_PATH)/http
 CFLAGS += -I$(INCLUDE_PATH)/flv
 CFLAGS += -I$(INCLUDE_PATH)/media
 CFLAGS += -I$(INCLUDE_PATH)/mov
+CFLAGS += -I$(INCLUDE_PATH)/mpeg
 CFLAGS += -Iffmpeg/include
 
 CPPFLAGS := -std=c++0x -D_HAVE_FFMPEG_
@@ -64,7 +66,10 @@ $(APP_NAME): $(OBJS)
 	
 %.o: %.cpp
 	$(CPP) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
-	
+
 clean:
+	rm -rf $(OBJS)
+		
+dist_clean:
 	rm -rf $(OBJS)
 	rm -f $(APP_NAME)

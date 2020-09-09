@@ -11,6 +11,9 @@
 #include "rtsp-server.h"
 #include "media/h264-file-source.h"
 #include "media/mp4-file-source.h"
+#include "media/ffmpeg-file-source.h"
+#include "media/ffmpeg-live-source.h"
+#include "media/ps-file-source.h"
 #include "rtp-udp-transport.h"
 #include "rtp-tcp-transport.h"
 #include "rtsp-server-aio.h"
@@ -20,9 +23,6 @@
 #include <map>
 #include <memory>
 //#include "cpm/shared_ptr.h"
-
-#include "media/ffmpeg-file-source.h"
-#include "media/ffmpeg-live-source.h"
 
 static const char* s_workdir = "e:\\";
 
@@ -123,7 +123,7 @@ static int rtsp_ondescribe(void* /*ptr*/, rtsp_server_t* rtsp, const char* uri)
 #if defined(_HAVE_FFMPEG_)
 				source.reset(new FFFileSource(filename.c_str()));
 #else
-				source.reset(new MP4FileSource(filename.c_str()));
+				//source.reset(new MP4FileSource(filename.c_str()));
 #endif
 				source->GetDuration(describe.duration);
 
@@ -209,7 +209,7 @@ static int rtsp_onsetup(void* /*ptr*/, rtsp_server_t* rtsp, const char* uri, con
 #if defined(_HAVE_FFMPEG_)
 			item.media.reset(new FFFileSource(filename.c_str()));
 #else
-			item.media.reset(new MP4FileSource(filename.c_str()));
+			//item.media.reset(new MP4FileSource(filename.c_str()));
 #endif
 		}
 
@@ -403,6 +403,27 @@ static int rtsp_onteardown(void* /*ptr*/, rtsp_server_t* rtsp, const char* /*uri
 	return rtsp_server_reply_teardown(rtsp, 200);
 }
 
+static int rtsp_ongetparameter(void* /*ptr*/, rtsp_server_t* rtsp, const char* session)
+{
+	std::shared_ptr<IMediaSource> source;
+	TSessions::iterator it;
+	{
+		AutoThreadLocker locker(s_locker);
+		it = s_sessions.find(session ? session : "");
+		if(it == s_sessions.end())
+		{
+			// 454 Session Not Found
+			return rtsp_server_reply_get_parameter(rtsp, 454,"");
+		}
+
+		source = it->second.media;
+		s_sessions.erase(it);
+	}
+
+	return rtsp_server_reply_get_parameter(rtsp, 200, session);
+}
+
+
 static int rtsp_onclose(void* /*ptr2*/)
 {
 	// TODO: notify rtsp connection lost
@@ -432,6 +453,7 @@ int main(int argc,char** argv)
     handler.base.onplay = rtsp_onplay;
     handler.base.onpause = rtsp_onpause;
     handler.base.onteardown = rtsp_onteardown;
+    handler.base.ongetparameter = rtsp_ongetparameter;
 	handler.base.close = rtsp_onclose;
 //	handler.base.send; // ignore
 	handler.onerror = rtsp_onerror;

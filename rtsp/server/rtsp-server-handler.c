@@ -68,6 +68,11 @@ int rtsp_server_handle(struct rtsp_server_t *rtsp)
         if (0 == strcasecmp("RECORD", method))
             return rtsp_server_record(rtsp, uri);
         break;
+    case 'g':
+    case 'G':
+        if (0 == strcasecmp("GET_PARAMETER", method))
+            return rtsp_server_get_parameter(rtsp, uri);
+        break;
 	}
 
 	// 501 Not implemented

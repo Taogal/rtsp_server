@@ -75,6 +75,12 @@ struct rtsp_handler_t
     /// @param[in] scale request scale, NULL if don't have Scale parameter
     /// @return 0-ok, other-error code
     int (*onrecord)(void* ptr, rtsp_server_t* rtsp, const char* uri, const char* session, const int64_t *npt, const double *scale);
+
+    /// RTSP GET_PARAMETER request(call rtsp_server_reply_get_parameter)
+    /// @param[in] ptr user-defined parameter
+    /// @param[in] session RTSP Session
+    /// @return 0-ok, other-error code
+    int (*ongetparameter)(void* ptr, rtsp_server_t* rtsp, const char* session);
 };
 
 /// create (reuse-able) rtsp server
@@ -148,6 +154,12 @@ int rtsp_server_reply_announce(rtsp_server_t* rtsp, int code);
 /// @param[in] rtpinfo RTP-info [optional] e.g. url=rtsp://foo.com/bar.avi/streamid=0;seq=45102,url=rtsp://foo.com/bar.avi/streamid=1;seq=30211
 /// @return 0-ok, other-error code
 int rtsp_server_reply_record(rtsp_server_t* rtsp, int code, const int64_t *nptstart, const int64_t *nptend, const char* rtpinfo);
+
+/// RTSP RGET_PARAMETER reply
+/// @param[in] rtsp request handle
+/// @param[in] code RTSP status-code(200-OK, 301-Move Permanently, ...)
+/// @param[in] session RTSP Session parameter/// @return 0-ok, other-error code
+int rtsp_server_reply_get_parameter(struct rtsp_server_t *rtsp, int code, const char* sessionid);
 
 /// RTSP send Embedded (Interleaved) Binary Data
 /// @param[in] rtsp request handle
